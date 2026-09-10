@@ -32,6 +32,15 @@ export function getRuntimeCompactionPolicy(runtimeId: RuntimeId): RuntimeCompact
         source: 'runtime_managed',
         recreatedUnderlyingSession: false,
       };
+    case 'kilo_runtime':
+      // Kilo manages its own compaction (session.compacted events); the
+      // CodePilot-side summary doesn't recreate the kilo session.
+      return {
+        runtimeId,
+        mode: 'reactive_only',
+        source: 'runtime_managed',
+        recreatedUnderlyingSession: false,
+      };
     default: {
       const exhaustive: never = runtimeId;
       return exhaustive;

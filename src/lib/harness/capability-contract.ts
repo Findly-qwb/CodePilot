@@ -189,6 +189,7 @@ export interface CapabilityContract {
     readonly claudecode_sdk: RuntimeExposure;
     readonly native: RuntimeExposure;
     readonly codex_proxy: RuntimeExposure;
+    readonly kilo_serve: RuntimeExposure;
   };
   /** Canonical system-prompt fragment all three runtimes must inject.
    *  Drift tests assert each runtime's exposure file includes this
@@ -243,6 +244,10 @@ const widget: CapabilityContract = {
       factory: 'buildWidgetGuidelinesTool',
       notes: 'WIDGET_PROMPT = canonical fragment verbatim (slice 7 de-drift).',
     },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
+    },
   },
   systemPromptFragment: WIDGET_SYSTEM_PROMPT,
   toolResultShape: 'text',
@@ -278,6 +283,10 @@ const memory: CapabilityContract = {
       module: 'src/lib/codex/proxy/builtin-bridge.ts',
       factory: 'buildMemorySearchTool',
       notes: 'Workspace-gated. Bridge MEMORY_PROMPT paraphrases canonical; tech-debt as Native.',
+    },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
     },
   },
   systemPromptFragment: MEMORY_SEARCH_SYSTEM_PROMPT,
@@ -318,6 +327,10 @@ const tasksAndNotify: CapabilityContract = {
       module: 'src/lib/codex/proxy/builtin-bridge.ts',
       factory: 'buildNotifyTool / buildScheduleTaskTool / buildListTasksTool / buildCancelTaskTool',
       notes: 'Slice 4 added durable/list/cancel parity with the MCP variant. All four tool names mount via createCodePilotBuiltinTools.',
+    },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
     },
   },
   systemPromptFragment: NOTIFICATION_MCP_SYSTEM_PROMPT,
@@ -365,6 +378,10 @@ const assistantBuddy: CapabilityContract = {
       kind: 'unsupported',
       notes: 'Not exposed via createCodePilotBuiltinTools. Codex Runtime users cannot hatch a buddy directly through the bridge; suggested workaround is to switch to ClaudeCode or CodePilot Runtime for the hatch flow.',
     },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
+    },
   },
   systemPromptFragment: NOTIFICATION_MCP_SYSTEM_PROMPT,
   toolResultShape: 'text',
@@ -395,6 +412,10 @@ const imageGeneration: CapabilityContract = {
       module: 'src/lib/codex/proxy/builtin-bridge.ts',
       factory: 'buildImageGenerationTool / buildVideoGenerationTool',
       notes: 'Both image and Grok Imagine video tools construct MediaBlock results, materialize Codex event media and emit through the same side-channel bus used by the Native path.',
+    },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
     },
   },
   // Image generation and media import share one dependency-free canonical
@@ -438,6 +459,10 @@ const mediaImport: CapabilityContract = {
       factory: 'buildImportMediaTool',
       notes: 'Slice 4 fix: MediaBlock.type matches mimeType prefix (image / video / audio). Same side-channel bus the Native path now consumes since Phase 5e P1.',
     },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
+    },
   },
   systemPromptFragment: MEDIA_CAPABILITY_SYSTEM_PROMPT,
   toolResultShape: 'media',
@@ -471,6 +496,10 @@ const dashboard: CapabilityContract = {
     codex_proxy: {
       kind: 'unsupported',
       notes: 'Legacy provider-proxy bridge is unsupported. Dashboard reaches Codex Runtime via the mutation-level MCP split — codepilot_dashboard_read (auto_accept) + codepilot_dashboard_write (user_approval), injected into config.mcp_servers and served by /api/codex/mcp/[server]. Matrix-layer promotion lives in CODEX_NATIVE_PROMOTED_BY_CAP (capability-matrix.ts).',
+    },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
     },
   },
   systemPromptFragment: DASHBOARD_MCP_SYSTEM_PROMPT,
@@ -506,6 +535,10 @@ const cliTools: CapabilityContract = {
     codex_proxy: {
       kind: 'unsupported',
       notes: 'Legacy provider-proxy bridge is unsupported. CLI tools reach Codex Runtime via the mutation-level MCP split — read MCP (list / check_updates, auto_accept) + write MCP (install / add / remove / update, user_approval), injected into config.mcp_servers. Matrix-layer promotion lives in CODEX_NATIVE_PROMOTED_BY_CAP.',
+    },
+    kilo_serve: {
+      kind: 'unsupported',
+      notes: 'Kilo Runtime v1 does not mount CodePilot built-in capabilities; kilo owns its own tool surface.',
     },
   },
   // CLI tools have no single SYSTEM_PROMPT export — the prompt lives

@@ -99,11 +99,14 @@ export async function POST(request: NextRequest) {
       && intendedProviderId !== 'openai-oauth'
       && intendedProviderId !== 'xai-oauth'
       && intendedProviderId !== 'codex_account'
+      // Kilo Runtime virtual provider — the model catalog + auth live in
+      // the managed `kilo serve` backend, never in CodePilot's DB.
+      && intendedProviderId !== 'kilo'
     );
     const fallbackDbProvider = !intendedProviderId
       ? (getProvider(getDefaultProviderId() || '') || getActiveProvider())
       : undefined;
-    if (!hasCodePilotProvider() && !hasDbProviderIntent && !fallbackDbProvider) {
+    if (!hasCodePilotProvider() && !hasDbProviderIntent && !fallbackDbProvider && intendedProviderId !== 'kilo') {
       return new Response(
         JSON.stringify({
           error: 'No provider configured in CodePilot.',

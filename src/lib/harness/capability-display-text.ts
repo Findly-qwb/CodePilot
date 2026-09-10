@@ -252,6 +252,15 @@ export const USER_EXTENSIONS_SUMMARY: Record<RuntimeId, UserExtensionsSummary> =
       en: 'Project CLAUDE.md is still visible to the model as a text prompt, but user-defined MCP servers / Skills / slash commands cannot be called on the Codex path. Switch to Claude Code or CodePilot to use them.',
     },
   },
+  kilo_runtime: {
+    runtimeId: 'kilo_runtime',
+    status: 'perception_only',
+    label: { zh: '用户自定义 MCP / Skills', en: 'User MCP / Skills' },
+    description: {
+      zh: 'CodePilot 侧配置的 MCP / Skills 在 Kilo 路径上不会注入；Kilo 使用自身配置的工具与 MCP。如需 CodePilot 的 MCP / Skills，请切到 Claude Code 或 CodePilot。',
+      en: 'CodePilot-configured MCP / Skills are not injected on the Kilo path; kilo uses its own configured tools and MCP. Switch to Claude Code or CodePilot to use CodePilot\'s MCP / Skills.',
+    },
+  },
 };
 
 /** Convenience lookup with a defensive default — returns the codex

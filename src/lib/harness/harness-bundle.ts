@@ -229,7 +229,7 @@ export interface BuildHarnessBundleInput {
  */
 function exposureKeyForRuntime(
   runtimeId: RuntimeId,
-): 'claudecode_sdk' | 'native' | 'codex_proxy' {
+): 'claudecode_sdk' | 'native' | 'codex_proxy' | 'kilo_serve' {
   switch (runtimeId) {
     case 'claude_code':
       return 'claudecode_sdk';
@@ -237,6 +237,8 @@ function exposureKeyForRuntime(
       return 'native';
     case 'codex_runtime':
       return 'codex_proxy';
+    case 'kilo_runtime':
+      return 'kilo_serve';
   }
 }
 

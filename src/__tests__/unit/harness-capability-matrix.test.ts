@@ -134,7 +134,9 @@ describe('Capability matrix — per-runtime exposure derivation (round 7)', () =
           ? 'claudecode_sdk'
           : cell.runtimeId === 'codepilot_runtime'
             ? 'native'
-            : 'codex_proxy';
+            : cell.runtimeId === 'kilo_runtime'
+              ? 'kilo_serve'
+              : 'codex_proxy';
       const exposureKind = cap!.exposure[exposureKey].kind;
       const key = `${cell.runtimeId}/${cell.capabilityId}`;
       if (exposureKind === 'unsupported') {

@@ -269,6 +269,18 @@ export function getModelCompat(args: {
       reasons.codepilot_runtime =
         'Codex Account model — only reachable through Codex Runtime';
       break;
+    case 'kilo_account':
+      // Kilo Runtime group — models are discovered live from the managed
+      // `kilo serve` backend and only reachable through it: kilo owns its
+      // provider auth + wire format, CodePilot never proxies these.
+      supported.add('kilo_runtime');
+      reasons.claude_code =
+        'Kilo model — only reachable through Kilo Runtime';
+      reasons.codepilot_runtime =
+        'Kilo model — only reachable through Kilo Runtime';
+      reasons.codex_runtime =
+        'Kilo model — only reachable through Kilo Runtime';
+      break;
     case 'unknown':
       // We don't know the right answer — let the user verify. Both
       // legacy runtimes keep the model visible until they hide it
@@ -314,6 +326,7 @@ export function compatLabel(compat: ProviderRuntimeCompat, isZh: boolean, provid
       return isZh ? 'OpenRouter · Claude Code 兼容' : 'OpenRouter · Claude Code compat';
     case 'codepilot_only':           return isZh ? 'CodePilot · Codex' : 'CodePilot · Codex';
     case 'codex_account':            return isZh ? 'Codex 账号' : 'Codex Account';
+    case 'kilo_account':             return isZh ? 'Kilo' : 'Kilo';
     case 'media_only':               return isZh ? '图片生成' : 'Image gen';
     case 'unknown':                  return isZh ? '需验证' : 'Needs verification';
   }
@@ -350,6 +363,10 @@ export function compatTooltip(compat: ProviderRuntimeCompat, isZh: boolean, prov
       return isZh
         ? '已登录 Codex 账号的原生模型，仅通过本机 codex app-server 在 Codex Runtime 下使用'
         : 'Native models from the logged-in Codex account — only reachable through the local codex app-server in Codex Runtime';
+    case 'kilo_account':
+      return isZh
+        ? 'Kilo 后端配置的模型，仅通过本机 kilo serve 在 Kilo Runtime 下使用'
+        : 'Models from your Kilo backend configuration — only reachable through the local kilo serve instance in Kilo Runtime';
     case 'media_only':
       return isZh
         ? '图片生成服务，只用于媒体创作功能，不出现在聊天模型选择器'
@@ -382,6 +399,7 @@ export function compatTone(compat: ProviderRuntimeCompat): string {
       return 'bg-status-info-muted text-status-info-foreground';
     case 'codepilot_only':           return 'bg-primary/10 text-primary';
     case 'codex_account':            return 'bg-status-info-muted text-status-info-foreground';
+    case 'kilo_account':             return 'bg-status-info-muted text-status-info-foreground';
     case 'media_only':               return 'bg-muted text-muted-foreground';
     case 'unknown':                  return 'bg-muted text-muted-foreground';
   }
@@ -398,6 +416,7 @@ export function compatDotColor(compat: ProviderRuntimeCompat): string {
     case 'openrouter_anthropic_skin': return 'bg-status-info-foreground';
     case 'codepilot_only':           return 'bg-primary';
     case 'codex_account':            return 'bg-status-info-foreground';
+    case 'kilo_account':             return 'bg-status-info-foreground';
     case 'media_only':               return 'bg-muted-foreground';
     case 'unknown':                  return 'bg-muted-foreground';
   }

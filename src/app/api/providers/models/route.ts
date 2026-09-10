@@ -553,6 +553,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Kilo Runtime — model catalog is owned by the managed `kilo serve`
+    // backend (kilo's own provider auth + config), not CodePilot's DB.
+    // Only the explicit kilo_runtime selection may spawn the instance;
+    // the group carries compat 'kilo_account' so the runtime filter
+    // below keeps it. Unreachable backend → no group (never a hang).
+    if (runtimeFilter === 'kilo_runtime') {
+      try {
+        const { buildKiloProviderModelGroup } = await import('@/lib/kilo/models');
+        const kiloGroup = await buildKiloProviderModelGroup();
+        if (kiloGroup) groups.push(kiloGroup);
+      } catch {
+        /* degraded: kilo serve unreachable or still spawning — no Kilo group. */
+      }
+    }
+
     // Phase 6 UI收口 P2 (2026-05-14) — every model row carries its
     // canonical compat annotations (`supportedRuntimes` +
     // `unsupportedReasonByRuntime`). Pickers render the full catalog

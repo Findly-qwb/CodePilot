@@ -80,5 +80,9 @@ skills-lock.json
 # (git clone --depth 1 https://github.com/openai/codex.git 资料/codex)
 资料/codex/
 
+# Kilo Runtime staged backend binary — produced by scripts/prepare-kilo-bin.mjs
+# (from a sibling kilocode checkout or KILO_BIN), never committed: ~200 MB.
+resources/kilo/
+
 # T3 Code reference checkout used by the CLI maintenance research plan.
 资料/t3code/

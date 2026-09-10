@@ -9,6 +9,7 @@ import type { TranslationKey } from '@/i18n';
 export function runtimeDisplayLabelKey(runtime: unknown): TranslationKey {
   if (runtime === 'codepilot_runtime') return 'runtimeSelector.codepilotRuntime';
   if (runtime === 'codex_runtime') return 'runtimeSelector.codexRuntime';
+  if (runtime === 'kilo_runtime') return 'runtimeSelector.kiloRuntime';
   if (runtime === 'claude_code') return 'runtimeSelector.claudeCode';
   return 'runtimeSwitchMarker.followGlobal';
 }

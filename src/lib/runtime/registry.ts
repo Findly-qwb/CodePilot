@@ -108,6 +108,12 @@ export function resolveRuntime(overrideId?: string, _providerId?: string): Agent
         + 'Install the Claude Code CLI, or switch this session to CodePilot or Codex Runtime.',
       );
     }
+    if (overrideId === 'kilo_runtime') {
+      throw new Error(
+        'Kilo is pinned for this session, but the kilo CLI is not installed or not detected. '
+        + 'Install Kilo CLI (`npm i -g @kilocode/cli` or set KILO_BIN), or switch this session to another runtime.',
+      );
+    }
   }
 
   // 2. cli_enabled=false short-circuit — only applies when no explicit
@@ -171,6 +177,8 @@ export function predictNativeRuntime(providerId?: string): boolean {
   if (providerId === 'codex_account') return false;
   const settingId = getSetting('agent_runtime');
   if (settingId === 'codex_runtime') return false;
+  // Kilo Runtime owns its own provider config — never native.
+  if (settingId === 'kilo_runtime') return false;
 
   // Phase 5b follow-up (2026-05-15) — openai-oauth was historically
   // pinned to native because Claude Code SDK can't speak OpenAI's

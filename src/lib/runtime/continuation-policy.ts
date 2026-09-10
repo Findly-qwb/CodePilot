@@ -40,6 +40,17 @@ export const RUNTIME_CONTINUATION_POLICIES: Readonly<Record<RuntimeId, RuntimeCo
     contextImport: 'canonical_handoff',
     source: 'adapter',
   },
+  kilo_runtime: {
+    // Kilo Runtime — kilo owns the model config; CodePilot-side provider /
+    // model changes don't affect the kilo session, so continuation is the
+    // in-session kilo id. Context import replays the CodePilot DB history
+    // when the kilo ref is missing (new-session path).
+    continuationKey: 'kilo_runtime:db_replay',
+    modelChange: 'in_session',
+    providerInstanceChange: 'in_session',
+    contextImport: 'db_replay',
+    source: 'adapter',
+  },
 };
 
 export function getRuntimeContinuationPolicy(runtimeId: RuntimeId): RuntimeContinuationPolicy {

@@ -13,6 +13,7 @@ import { assertPackagedRuntimeDrivers } from './runtime-catalog';
 import { nativeRuntime } from './native-runtime';
 import { sdkRuntime } from './sdk-runtime';
 import { codexRuntime } from '@/lib/codex/runtime';
+import { kiloRuntime } from '@/lib/kilo/runtime';
 
 // Register built-in runtimes
 registerRuntime(nativeRuntime);
@@ -21,6 +22,10 @@ registerRuntime(sdkRuntime);
 // the runtime registry resolver, so chat sends only route here when
 // `codex` binary is on PATH (or CODEX_BIN env override is set).
 registerRuntime(codexRuntime);
+// Kilo Runtime — same gating pattern: only selectable when `kilo`
+// binary is on PATH (or KILO_BIN env override is set). Routes through
+// a managed `kilo serve` child process over its public HTTP+SSE API.
+registerRuntime(kiloRuntime);
 
 // Harness Home A4: the descriptor catalog and packaged implementations must
 // stay atomic. A missing driver fails startup instead of leaving a selectable

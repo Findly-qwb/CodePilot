@@ -1555,6 +1555,16 @@ function startServer(port: number, recoverySafeMode = false): Electron.UtilityPr
   const constructedPath = getExpandedShellPath();
   const cliMaintenanceBootstrap = getCliMaintenanceBootstrapLease();
 
+  // Kilo Runtime — locate the bundled kilo backend in the packaged app
+  // (extraResources: {resources}/kilo/). Dev runs (no resources/kilo dir)
+  // stay on PATH / repo-probe resolution inside kilo-process.ts.
+  const kiloResourceDir = path.join(process.resourcesPath, 'kilo');
+  const kiloBinName = process.platform === 'win32' ? 'kilo.exe' : 'kilo';
+  const bundledKiloBinPath = path.join(kiloResourceDir, 'bin', kiloBinName);
+  const bundledKiloBin = fs.existsSync(bundledKiloBinPath) ? bundledKiloBinPath : '';
+  const bundledKiloTreeSitterPath = path.join(kiloResourceDir, 'tree-sitter');
+  const bundledKiloTreeSitterDir = fs.existsSync(bundledKiloTreeSitterPath) ? bundledKiloTreeSitterPath : '';
+
   const env = buildProxySafeEnvironment({
     // Ensure user shell env vars override inherited values (especially API
     // keys). On Windows loadUserShellEnv() is empty, so inherited process.env
@@ -1578,6 +1588,12 @@ function startServer(port: number, recoverySafeMode = false): Electron.UtilityPr
       PATH: constructedPath,
       CODEPILOT_SERVER_GENERATION: String(generation),
       CODEPILOT_RECOVERY_SAFE_MODE: recoverySafeMode ? '1' : '0',
+      // Kilo Runtime — point the Next server at the bundled kilo backend
+      // (extraResources: resourcesPath/kilo/bin/kilo). Packaged builds ship
+      // the binary so users never need a global CLI install; dev builds
+      // leave this unset and kilo-process falls back to PATH / repo probe.
+      ...(bundledKiloBin ? { KILO_BUNDLED_BIN: bundledKiloBin } : {}),
+      ...(bundledKiloTreeSitterDir ? { KILO_TREE_SITTER_WASM_DIR: bundledKiloTreeSitterDir } : {}),
       ...(cliMaintenanceBootstrap ? {
         CODEPILOT_CLI_MAINTENANCE_PROVIDER: cliMaintenanceBootstrap.provider,
         CODEPILOT_CLI_MAINTENANCE_LEASE_ID: cliMaintenanceBootstrap.leaseId,

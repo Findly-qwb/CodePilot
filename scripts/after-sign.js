@@ -53,8 +53,12 @@ function collectFiles(dir, extensions) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      // Don't descend into .app or .framework bundles — they are signed as a unit
-      if (entry.name.endsWith('.app') || entry.name.endsWith('.framework')) {
+      // Don't descend into .app bundles — their executables are collected by
+      // collectExecutableHelpers and sealed in depth-first order. .framework
+      // directories ARE descended into: the official Electron mac zip ships
+      // UNSIGNED (the host app is responsible for all signing), so dylibs
+      // inside Electron Framework must be signed explicitly too.
+      if (entry.name.endsWith('.app')) {
         continue;
       }
       results.push(...collectFiles(fullPath, extensions));
@@ -80,15 +84,14 @@ function collectExecutableHelpers(dir) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      // Helper .app bundles are signed as bundles in a later step.
-      if (entry.name.endsWith('.app')) {
-        continue;
-      }
+      // Descend into .app bundles too: Helper apps inside Frameworks ship
+      // unsigned with the official Electron zip, and their inner executables
+      // need signing before the parent .app bundle seals them.
       results.push(...collectExecutableHelpers(fullPath));
     } else if (entry.isFile()) {
       try {
         const mode = fs.statSync(fullPath).mode;
-        if ((mode & 0o111) !== 0) {
+        if ((mode & 0o111) !== 0 && isMachO(fullPath)) {
           results.push(fullPath);
         }
       } catch {
@@ -96,8 +99,39 @@ function collectExecutableHelpers(dir) {
       }
     }
   }
+  // Depth-first seal order: deepest paths (nested helpers, framework
+  // principals) sign before the shallower bundles that embed them.
+  return results.sort((a, b) => b.split('/').length - a.split('/').length);
+}
 
-  return results;
+/**
+ * Cheap Mach-O detection so collectExecutableHelpers signs real binaries
+ * instead of shebang scripts (node_modules/.bin entries are executable but
+ * plain text; codesign would reject them).
+ */
+const MACHO_MAGICS = new Set([
+  'cefaedfe', // MH_MAGIC 32-bit
+  'cffaedfe', // MH_MAGIC_64
+  'cafaedfe', // MH_MAGIC_ARC64(_32)
+  'cafebabe', // FAT_MAGIC
+  'bebafeca', // FAT_MAGIC swapped
+  'cafebaff', // FAT_MAGIC_64
+  'ffbafeca', // FAT_MAGIC_64 swapped
+]);
+
+function isMachO(fullPath) {
+  try {
+    const fd = fs.openSync(fullPath, 'r');
+    try {
+      const buf = Buffer.alloc(4);
+      const bytesRead = fs.readSync(fd, buf, 0, 4, 0);
+      return bytesRead === 4 && MACHO_MAGICS.has(buf.toString('hex'));
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -167,11 +201,13 @@ module.exports = async function afterSign(context) {
     console.log(`[afterSign]   Signed ${nativeBinaries.length} native binaries (.node/.dylib/.so)`);
   }
 
-  // Step 2: Sign executable helper binaries inside frameworks before signing
-  // framework bundles. Some Electron builds ship extensionless helper binaries
-  // (e.g. chrome_crashpad_handler), and codesign requires them to be sealed
-  // before the parent framework is signed.
-  const executableHelpers = collectExecutableHelpers(frameworksPath);
+  // Step 2: Sign every Mach-O executable helper binary under Contents
+  // (framework internals, Helper app executables, and bundled resources
+  // such as the Kilo Runtime CLI) before signing the parent bundles.
+  // The official Electron mac zip ships fully unsigned, so nothing can be
+  // assumed pre-sealed; depth-first ordering guarantees every nested
+  // component is signed before its enclosing bundle recomputes the seal.
+  const executableHelpers = collectExecutableHelpers(contentsPath);
   for (const helper of executableHelpers) {
     codesign(helper);
     signed++;

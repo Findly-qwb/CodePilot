@@ -11,9 +11,10 @@
 export type RuntimeExposureKey =
   | 'claudecode_sdk'
   | 'native'
-  | 'codex_proxy';
+  | 'codex_proxy'
+  | 'kilo_serve';
 
-export type RuntimeBrandIcon = 'anthropic' | 'codepilot' | 'openai';
+export type RuntimeBrandIcon = 'anthropic' | 'codepilot' | 'openai' | 'kilo';
 
 export interface RuntimeRegistration {
   readonly id: string;
@@ -79,6 +80,20 @@ export const BUILTIN_RUNTIME_REGISTRATIONS = [
       description: 'runtimeSelector.codexRuntimeDesc',
     },
     icon: 'openai',
+    packagedRegistration: 'explicit',
+  },
+  {
+    id: 'kilo_runtime',
+    displayName: { zh: 'Kilo', en: 'Kilo' },
+    integrationLevel: 'bridge',
+    driverId: 'kilo_runtime',
+    exposureKey: 'kilo_serve',
+    projectionModes: ['context', 'mcp_descriptor', 'skill_descriptor'],
+    translationKeys: {
+      label: 'runtimeSelector.kiloRuntime',
+      description: 'runtimeSelector.kiloRuntimeDesc',
+    },
+    icon: 'kilo',
     packagedRegistration: 'explicit',
   },
 ] as const satisfies readonly RuntimeRegistration[];

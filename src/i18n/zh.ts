@@ -2208,6 +2208,8 @@ const zh: Record<TranslationKey, string> = {
   'runtimeSelector.codepilotRuntimeDesc': '兼容 OpenAI 服务商',
   'runtimeSelector.codexRuntime': 'Codex',
   'runtimeSelector.codexRuntimeDesc': 'Codex 账号 · 原生模型',
+  'runtimeSelector.kiloRuntime': 'Kilo',
+  'runtimeSelector.kiloRuntimeDesc': 'Kilo CLI · 托管 serve',
   'runtime.codexRecoveryAction': '复制命令并打开 PowerShell',
   'runtime.codexRecoveryPreparing': '正在准备 PowerShell…',
   'runtime.codexRecoveryReady': '安装命令已复制，并已打开 PowerShell。粘贴后按 Enter 即可。',

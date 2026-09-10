@@ -107,7 +107,7 @@ const ALL_RUNTIMES: readonly RuntimeId[] = RUNTIME_IDS;
 
 function exposureKey(
   runtimeId: RuntimeId,
-): 'claudecode_sdk' | 'native' | 'codex_proxy' {
+): 'claudecode_sdk' | 'native' | 'codex_proxy' | 'kilo_serve' {
   return requireRuntimeRegistration(runtimeId).exposureKey;
 }
 

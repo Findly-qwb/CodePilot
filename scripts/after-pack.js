@@ -50,16 +50,25 @@ module.exports = async function afterPack(context) {
       source: path.join(projectDir, 'node_modules', 'better-sqlite3', 'build', 'Release', 'better_sqlite3.node'),
     },
     {
+      // OPTIONAL: ws's zlib-sync accelerator. When the local toolchain can't
+      // build it (e.g. Apple clang <15's libc++ lacks <source_location> that
+      // Electron 40's V8 headers include), ship without it — ws falls back to
+      // the bundled Node zlib implementation and Discord/bridge compression
+      // keeps working, only slower. better-sqlite3 above stays fail-closed.
       packageName: 'zlib-sync',
       outputName: 'zlib_sync.node',
       source: path.join(projectDir, 'node_modules', 'zlib-sync', 'build', 'Release', 'zlib_sync.node'),
+      optional: true,
     },
   ];
   console.log('[afterPack] Rebuilding standalone native modules for Electron ABI...');
 
+  const requiredModules = nativeModules.filter((item) => !item.optional);
+  const optionalModules = nativeModules.filter((item) => item.optional);
+
   try {
     // Use @electron/rebuild via npx (it's a dependency of electron-builder)
-    const moduleNames = nativeModules.map((item) => item.packageName).join(',');
+    const moduleNames = requiredModules.map((item) => item.packageName).join(',');
     const rebuildCmd = `npx electron-rebuild -f -o ${moduleNames} -v ${electronVersion} -a ${archName}`;
     console.log(`[afterPack] Running: ${rebuildCmd}`);
     execSync(rebuildCmd, {
@@ -77,7 +86,7 @@ module.exports = async function afterPack(context) {
         buildPath: projectDir,
         electronVersion: electronVersion,
         arch: archName,
-        onlyModules: nativeModules.map((item) => item.packageName),
+        onlyModules: requiredModules.map((item) => item.packageName),
         force: true,
       });
       console.log('[afterPack] Rebuild via @electron/rebuild API succeeded');
@@ -87,11 +96,30 @@ module.exports = async function afterPack(context) {
     }
   }
 
+  // Optional modules rebuild separately; failure degrades, never fails.
+  for (const item of optionalModules) {
+    try {
+      execSync(`npx electron-rebuild -f -o ${item.packageName} -v ${electronVersion} -a ${archName}`, {
+        cwd: projectDir,
+        stdio: 'inherit',
+        timeout: 120000,
+      });
+    } catch (err) {
+      console.warn(`[afterPack] optional "${item.packageName}" rebuild failed (${err.message}); shipping without its Electron-ABI binary`);
+    }
+  }
+
   // Step 2: Verify every rebuilt .node file.
+  const presentModules = [];
   for (const item of nativeModules) {
     if (!fs.existsSync(item.source)) {
+      if (item.optional) {
+        console.warn(`[afterPack] optional ${item.outputName} not built — skipping replacement`);
+        continue;
+      }
       throw new Error(`[afterPack] Rebuilt ${item.outputName} not found at ${item.source}`);
     }
+    presentModules.push(item);
     const sourceStats = fs.statSync(item.source);
     console.log(`[afterPack] Rebuilt .node file: ${item.source} (${sourceStats.size} bytes, mtime: ${sourceStats.mtime.toISOString()})`);
   }
@@ -105,7 +133,7 @@ module.exports = async function afterPack(context) {
     path.join(appOutDir, 'resources', 'standalone'),
   ];
 
-  const replaced = new Map(nativeModules.map((item) => [item.outputName, 0]));
+  const replaced = new Map(presentModules.map((item) => [item.outputName, 0]));
 
   function walkAndReplace(dir) {
     if (!fs.existsSync(dir)) return;
@@ -115,7 +143,7 @@ module.exports = async function afterPack(context) {
       if (entry.isDirectory()) {
         walkAndReplace(fullPath);
       } else {
-        const item = nativeModules.find((candidate) => candidate.outputName === entry.name);
+        const item = presentModules.find((candidate) => candidate.outputName === entry.name);
         if (!item) continue;
         const beforeSize = fs.statSync(fullPath).size;
         fs.copyFileSync(item.source, fullPath);
@@ -130,7 +158,7 @@ module.exports = async function afterPack(context) {
     walkAndReplace(root);
   }
 
-  for (const item of nativeModules) {
+  for (const item of presentModules) {
     const count = replaced.get(item.outputName);
     if (count > 0) {
       console.log(`[afterPack] Successfully replaced ${count} ${item.outputName} file(s) with Electron ABI build`);

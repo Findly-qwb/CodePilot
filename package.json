@@ -34,7 +34,7 @@
     "lint:docs-drift": "node scripts/lint-docs-drift.mjs",
     "prepare": "node -e \"try{require('husky')()}catch(e){}\"",
     "electron:dev": "node scripts/build-electron-dev.mjs && concurrently -k -n next,esbuild,electron \"next dev\" \"node scripts/build-electron-dev.mjs --watch\" \"node scripts/start-electron-dev.mjs\"",
-    "electron:build": "node scripts/prepare-macos-universal-runtime.mjs && node scripts/clean-electron-build.mjs && next build && node scripts/build-electron.mjs",
+    "electron:build": "node scripts/prepare-macos-universal-runtime.mjs && node scripts/prepare-kilo-bin.mjs && node scripts/clean-electron-build.mjs && next build && node scripts/stage-standalone-natives.mjs && node scripts/build-electron.mjs",
     "sentry:sourcemaps:verify": "node scripts/sentry-source-maps.mjs --verify",
     "sentry:sourcemaps:upload": "node scripts/sentry-source-maps.mjs --upload",
     "electron:pack": "npm run electron:build && electron-builder --config electron-builder.yml",

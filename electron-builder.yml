@@ -19,6 +19,20 @@ files:
   - "!release"
   - "!data"
 extraResources:
+  # Kilo Runtime backend — the single-binary `kilo` CLI built from
+  # kilocode packages/opencode (`bun run build --single`). Consumers:
+  #   - electron/main.ts reads {resources}/kilo/bin/kilo and exports
+  #     KILO_BUNDLED_BIN + KILO_TREE_SITTER_WASM_DIR to the Next server.
+  #   - src/lib/kilo/kilo-process.ts resolves it before PATH.
+  # scripts/prepare-kilo-bin.mjs stages this directory (or leaves a
+  # placeholder with only a README when no binary is found), so the
+  # FileSet always has a source dir and runtime availability is
+  # decided by main.ts's existsSync probe, not by packaging.
+  - from: resources/kilo/
+    to: kilo/
+    filter:
+      - "**/*"
+      - "!README-no-binary.md"
   - from: .next/standalone/
     to: standalone/
     filter:

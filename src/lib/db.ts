@@ -758,6 +758,12 @@ function migrateDb(db: Database.Database): void {
   if (!colNames.includes('codex_thread_mcp_fingerprint')) {
     safeAddColumn(db, "ALTER TABLE chat_sessions ADD COLUMN codex_thread_mcp_fingerprint TEXT NOT NULL DEFAULT ''");
   }
+  // Kilo Runtime — persist the `kilo serve` session id so a follow-up
+  // send reuses the same kilo session instead of starting a fresh one.
+  // Same pattern as codex_thread_id: only session-store.ts reads/writes.
+  if (!colNames.includes('kilo_session_id')) {
+    safeAddColumn(db, "ALTER TABLE chat_sessions ADD COLUMN kilo_session_id TEXT NOT NULL DEFAULT ''");
+  }
   // Runtime ownership migration must run only after both native Runtime refs
   // and every binding column exist. It is conservative and idempotent: rows
   // without proof remain unbound; ambiguous started rows fail closed.
@@ -2614,6 +2620,16 @@ export function updateCodexThreadId(
   db.prepare(
     'UPDATE chat_sessions SET codex_thread_id = ?, codex_thread_provider_id = ?, codex_thread_mcp_fingerprint = ? WHERE id = ?',
   ).run(codexThreadId, providerId, mcpFingerprint, id);
+}
+
+/**
+ * Kilo Runtime — persist the `kilo serve` session id. Mirror of
+ * `updateSdkSessionId`. Called only from session-store.ts.
+ * Pass the empty string to clear.
+ */
+export function updateKiloSessionId(id: string, kiloSessionId: string): void {
+  const db = getDb();
+  db.prepare('UPDATE chat_sessions SET kilo_session_id = ? WHERE id = ?').run(kiloSessionId, id);
 }
 
 export function updateSessionModel(id: string, model: string): void {

@@ -30,7 +30,7 @@
 
 import type { RuntimeId } from './runtime-id';
 import type { RuntimeSessionRef } from './contract';
-import { getSession, updateSdkSessionId, updateCodexThreadId } from '@/lib/db';
+import { getSession, updateSdkSessionId, updateCodexThreadId, updateKiloSessionId } from '@/lib/db';
 
 /**
  * Resolve the runtime-side session reference for a chat session
@@ -76,6 +76,15 @@ export function getRuntimeSessionRef(
         },
       };
     }
+    case 'kilo_runtime': {
+      // Kilo Runtime — `kilo serve` session id persistence. Backed by
+      // `chat_sessions.kilo_session_id`. Continuation reuses the same
+      // kilo session; no provider-binding metadata in v1 (kilo owns
+      // model selection).
+      const session = getSession(chatSessionId);
+      if (!session?.kilo_session_id) return null;
+      return { runtimeId: 'kilo_runtime', token: session.kilo_session_id };
+    }
     default: {
       // Exhaustiveness — when a new RuntimeId lands here, TS will fail
       // compilation forcing the implementer to add a case.
@@ -119,6 +128,10 @@ export function setRuntimeSessionRef(
       updateCodexThreadId(chatSessionId, ref.token, providerId, mcpFingerprint);
       return;
     }
+    case 'kilo_runtime':
+      // Kilo Runtime — persist the kilo session id.
+      updateKiloSessionId(chatSessionId, ref.token);
+      return;
     default: {
       const _: never = ref.runtimeId;
       throw new Error(`setRuntimeSessionRef: unknown runtime ${String(_)}`);
@@ -154,6 +167,11 @@ export function clearRuntimeSessionRef(
       // also clears the bound provider id so the next start writes
       // a fresh pair. Phase 8 Phase 2 — also clears the MCP fingerprint.
       updateCodexThreadId(chatSessionId, '', '', '');
+      return;
+    case 'kilo_runtime':
+      // Kilo Runtime — clear the persisted kilo session id so the next
+      // send starts a fresh kilo session.
+      updateKiloSessionId(chatSessionId, '');
       return;
     default: {
       const _: never = runtimeId;

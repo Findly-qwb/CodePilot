@@ -85,6 +85,13 @@ export interface ChatSession {
    * stale MCP tool set. Empty string = no MCP injected / legacy thread.
    */
   codex_thread_mcp_fingerprint?: string;
+  /**
+   * Kilo Runtime — `kilo serve` session id for continuation. Mirrors
+   * `sdk_session_id` semantics but scoped to the kilo_runtime adapter.
+   * Empty string = no kilo session established yet. UI / API code MUST
+   * NOT read this directly — route through `src/lib/runtime/session-store.ts`.
+   */
+  kilo_session_id?: string;
   project_name: string;
   /**
    * Phase 3 Step 4 — see `ChatSessionSource`. Stored as TEXT (default
@@ -634,6 +641,7 @@ export type ProviderRuntimeCompat =
   | 'openrouter_anthropic_skin'
   | 'codepilot_only'
   | 'codex_account'
+  | 'kilo_account'
   | 'media_only'
   | 'unknown';
 

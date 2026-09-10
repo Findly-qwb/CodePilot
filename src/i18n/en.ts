@@ -2237,6 +2237,8 @@ const en = {
   'runtimeSelector.codepilotRuntimeDesc': 'OpenAI-compatible',
   'runtimeSelector.codexRuntime': 'Codex',
   'runtimeSelector.codexRuntimeDesc': 'Codex account · native',
+  'runtimeSelector.kiloRuntime': 'Kilo',
+  'runtimeSelector.kiloRuntimeDesc': 'Kilo CLI · managed serve',
   'runtime.codexRecoveryAction': 'Copy command & open PowerShell',
   'runtime.codexRecoveryPreparing': 'Preparing PowerShell…',
   'runtime.codexRecoveryReady': 'Install command copied and PowerShell opened. Paste it, then press Enter.',

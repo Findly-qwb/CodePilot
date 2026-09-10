@@ -288,7 +288,7 @@ const CODEX_BRIDGE_STEP_LIMIT = 8;
  *  keys describe HOW each runtime hosts the capability. */
 function exposureKeyForRuntime(
   runtimeId: RuntimeId,
-): 'claudecode_sdk' | 'native' | 'codex_proxy' {
+): 'claudecode_sdk' | 'native' | 'codex_proxy' | 'kilo_serve' {
   switch (runtimeId) {
     case 'claude_code':
       return 'claudecode_sdk';
@@ -296,6 +296,8 @@ function exposureKeyForRuntime(
       return 'native';
     case 'codex_runtime':
       return 'codex_proxy';
+    case 'kilo_runtime':
+      return 'kilo_serve';
   }
 }
 
@@ -315,7 +317,7 @@ function resolveEnabledCapabilities(
  *  that case the capability is not exposed in this runtime. */
 function buildCapabilityFragment(
   cap: CapabilityContract,
-  exposureKey: 'claudecode_sdk' | 'native' | 'codex_proxy',
+  exposureKey: 'claudecode_sdk' | 'native' | 'codex_proxy' | 'kilo_serve',
 ): CapabilityFragment | null {
   const exposure = cap.exposure[exposureKey];
   if (exposure.kind === 'unsupported') return null;
