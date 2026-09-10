@@ -37,6 +37,8 @@ export const ADAPTER_STATUS_BY_COMPAT: Record<ProviderRuntimeCompat, ProxyAdapte
   // Native runtime never goes through the proxy — Codex Account
   // routes through Codex's own app-server, not via codepilot_proxy.
   codex_account: 'not_applicable',
+  // Kilo models live in the kilo serve backend, never proxied.
+  kilo_account: 'not_applicable',
   // Image / video / embedding don't surface in chat picker.
   media_only: 'not_applicable',
   // The three real adapter targets are now wired via the unified
@@ -62,6 +64,7 @@ export type AdapterFamily = 'openai_compatible' | 'anthropic_compatible' | 'code
 export const ADAPTER_FAMILY_BY_COMPAT: Record<ProviderRuntimeCompat, AdapterFamily> = {
   // Codex Account routes through Codex natively, never via the proxy.
   codex_account: 'native',
+  kilo_account: 'native',
   media_only: 'native',
   // Anthropic-shape wire (proper Messages-API). Phase 5b's
   // Anthropic-compat adapter handles these.
